@@ -28,3 +28,5 @@ Thumbs.db
 
 # 🚀 Streamlit cache (optional)
 .streamlit/cache/
+
+*.pkl
