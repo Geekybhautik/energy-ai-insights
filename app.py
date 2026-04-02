@@ -60,7 +60,7 @@ def load_data():
 
     df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
 
-    # ✅ Fix common name mismatches
+    # Fix country names
     country_mapping = {
         "United States": "United States of America",
         "Russia": "Russian Federation",
@@ -71,10 +71,12 @@ def load_data():
 
     df['country'] = df['country'].replace(country_mapping)
 
-    # ✅ Keep only real countries
+    # Keep only real countries
     real_countries = set([c.name for c in pycountry.countries])
-
     df = df[df['country'].isin(real_countries)]
+
+    # 🔥 IMPORTANT FIX (removes 1900 issue)
+    df = df[df['year'] >= 1960]
 
     df['year'] = df['year'].astype(int)
 
@@ -259,9 +261,10 @@ if page == "📊 Dashboard":
     col2.metric("Max Renewables Share",
                 f"{df['renewables_share_energy'].max():.1f}%"
                 if 'renewables_share_energy' in df.columns else "N/A")
-    col3.metric("Avg CO₂/Capita",
-                f"{df['co2_per_capita'].mean():.2f} t"
-                if 'co2_per_capita' in df.columns else "N/A")
+    if 'co2_per_capita' in df.columns and df['co2_per_capita'].notna().sum() > 0:
+        col3.metric("Avg CO₂/Capita", f"{df['co2_per_capita'].mean():.2f} t")
+    else:
+        col3.metric("Avg CO₂/Capita", "N/A")
     col4.metric("Total Records", f"{len(df):,}")
 
     st.markdown("---")
@@ -544,7 +547,7 @@ elif page == "🔮 Energy Predictor":
 
             st.markdown("---")
             r1, r2, r3 = st.columns(3)
-            r1.metric(f"Predicted ({target_year})", f"{prediction:,.0f} kWh/capita")
+            r1.metric(f"Predicted ({target_year})", f"{prediction:,.0f} Total Energy")
             if latest_val:
                 change = ((prediction - latest_val) / latest_val) * 100
                 r2.metric("Latest Actual", f"{latest_val:,.0f} kWh/capita")
@@ -602,13 +605,9 @@ elif page == "📈 ML Model Info":
 | Property | Value |
 |---|---|
 | Algorithm | Random Forest Regressor |
-| Task | Regression — predict energy per capita (kWh) |
-| Target variable | `energy_per_capita` |
-| Training dataset | energy_ml_clean (1).csv |
-| Train / Test split | 80% / 20% |
-| Number of trees | 150 estimators |
-| Features used | {len(feature_cols)} |
-""")
+| Task | Regression — predict total energy consumption |
+| Target variable | `primary_energy_consumption` |
+| Training dataset | clean_energy_data.csv |
 
     st.subheader("📊 Model Performance on Test Set")
     m1, m2, m3 = st.columns(3)
@@ -653,16 +652,13 @@ elif page == "📈 ML Model Info":
     st.code(", ".join(feature_cols), language="python")
 
     st.subheader("🎯 What This Model Predicts")
-    st.markdown("""
+st.markdown("""
 Given a **country** and **year** (plus optional economic features), the model predicts
-how much energy (kWh per capita) that country will consume.
+how much **total energy consumption** that country will have.
 
-This directly serves the project objective:
-> *"Predict sustainability indicators using ML models"*
-
-**Predictions are used to:**
-- Identify countries likely to increase fossil fuel dependency
-- Flag nations needing urgent energy efficiency policies
-- Power the AI advisor with data-grounded forecasts
-- Compare a country's trajectory against global sustainability targets
+This helps:
+- Identify future energy demand trends
+- Detect high-risk countries for fossil dependency
+- Support sustainability policy decisions
+- Compare national energy trajectories
 """)
