@@ -48,66 +48,27 @@ st.markdown("""
 @st.cache_data
 def load_data():
 
-    # Try multiple filename formats (important fix)
-    possible_files = [
-        "World_Energy_Consumption.csv",
-        "World Energy Consumption.csv"
-    ]
+    file_name = "World_Energy_Consumption.csv"
 
-    file_found = None
-    for f in possible_files:
-        if os.path.exists(f):
-            file_found = f
-            break
-
-    if file_found is None:
-        st.error("❌ Dataset file not found. Please check filename.")
+    if not os.path.exists(file_name):
+        st.error("❌ Original dataset not found.")
         st.stop()
 
-    df = pd.read_csv(file_found)
+    df = pd.read_csv(file_name)
 
-    # ✅ FIX: Normalize column names (THIS SOLVES YOUR ERROR)
     df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
 
-    # Required columns
-    desired_cols = [
-        'country', 'year',
-        'energy_per_capita',
-        'renewables_share_energy',
-        'fossil_share_energy',
-        'co2_per_capita',
-        'gdp', 'population',
-        'solar_share_energy',
-        'wind_share_energy',
-        'nuclear_share_energy',
-        'coal_share_energy',
-        'oil_share_energy',
-        'gas_share_energy',
-        'electricity_demand',
-        'primary_energy_consumption'
-    ]
-
-    # Keep only available columns
-    available = [c for c in desired_cols if c in df.columns]
-    df = df[available]
-
-    # ✅ Safe check before drop
-    if 'energy_per_capita' not in df.columns:
-        st.error("❌ 'energy_per_capita' column not found in dataset.")
-        st.write("Available columns:", df.columns.tolist())
-        st.stop()
-
-    df = df.dropna(subset=['country', 'year', 'energy_per_capita'])
-
-    # Remove aggregated regions
+    # ❌ REMOVE NON-COUNTRIES
     regions_to_exclude = [
         'World', 'Europe', 'Asia', 'Africa', 'North America',
-        'South America', 'Oceania', 'Middle East', 'European Union (27)',
-        'High-income countries', 'Low-income countries', 'OECD',
-        'Non-OECD', 'Upper-middle-income countries', 'Lower-middle-income countries'
+        'South America', 'Oceania', 'Middle East',
+        'European Union (27)', 'OECD', 'Non-OECD',
+        'High-income countries', 'Low-income countries',
+        'Upper-middle-income countries', 'Lower-middle-income countries'
     ]
 
     df = df[~df['country'].isin(regions_to_exclude)]
+
     df['year'] = df['year'].astype(int)
 
     return df
