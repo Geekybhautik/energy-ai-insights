@@ -256,12 +256,12 @@ if page == "📊 Dashboard":
     st.title("📊 Global Energy Dashboard")
     st.caption("Explore worldwide energy consumption, renewable adoption.")
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     col1.metric("Avg Energy/Capita",    f"{df['energy_per_capita'].mean():.0f} kWh")
     col2.metric("Max Renewables Share",
                 f"{df['renewables_share_energy'].max():.1f}%"
                 if 'renewables_share_energy' in df.columns else "N/A")
-    col4.metric("Total Records", f"{len(df):,}")
+    col3.metric("Total Records", f"{len(df):,}")
 
     st.markdown("---")
 
