@@ -611,7 +611,7 @@ elif page == "📈 ML Model Info":
 
     st.subheader("📊 Model Performance on Test Set")
     m1, m2, m3 = st.columns(3)
-    m1.metric("R² Score", f"{model_metrics['r2']:.4f}",
+    m1.metric("R2 Score", f"{model_metrics['r2']:.4f}",
               help="1.0 = perfect. >0.85 is excellent.")
     m2.metric("MAE",      f"{model_metrics['mae']:,} kWh",
               help="Mean Absolute Error.")
@@ -620,16 +620,16 @@ elif page == "📈 ML Model Info":
 
     if model_metrics['r2'] >= 0.85:
         st.markdown("""<div class="insight-box">
-        <b>R² ≥ 0.85</b> — the model explains over 85% of variance in energy consumption.
+        <b>R2 ≥ 0.85</b> — the model explains over 85% of variance in energy consumption.
         Strong performance for country-level tabular data.
         </div>""", unsafe_allow_html=True)
     elif model_metrics['r2'] >= 0.70:
         st.markdown("""<div class="warning-box">
-        <b>R² between 0.70–0.85</b> — decent. Consider adding more features.
+        <b>R2 between 0.70–0.85</b> — decent. Consider adding more features.
         </div>""", unsafe_allow_html=True)
     else:
         st.markdown("""<div class="warning-box">
-        <b>R² below 0.70</b> — check clean dataset for sufficient rows and relevant columns.
+        <b>R2 below 0.70</b> — check clean dataset for sufficient rows and relevant columns.
         </div>""", unsafe_allow_html=True)
 
     # Feature importance
