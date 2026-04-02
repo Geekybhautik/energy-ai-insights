@@ -283,8 +283,7 @@ st.sidebar.metric("Countries (EDA)", df['country'].nunique())
 st.sidebar.metric("Year Range",      f"{df['year'].min()} – {df['year'].max()}")
 st.sidebar.metric("Total Records",   f"{len(df):,}")
 st.sidebar.markdown("---")
-st.sidebar.caption("📂 EDA  → World_Energy_Consumption.csv")
-st.sidebar.caption("🤖 ML   → energy_ml_clean (1).csv")
+
 
 # ─────────────────────────────────────────────
 # PAGE 1: DASHBOARD
@@ -636,7 +635,6 @@ sustainability trajectory and what specific policy actions could help.
 # ─────────────────────────────────────────────
 elif page == "📈 ML Model Info":
     st.title("📈 ML Model — Details & Performance")
-    st.caption("Model trained on: energy_ml_clean (1).csv")
 
     st.subheader("Model Architecture")
     st.markdown(f"""
