@@ -619,17 +619,17 @@ elif page == "📈 ML Model Info":
               help="Root Mean Squared Error.")
 
     if model_metrics['r2'] >= 0.85:
-        st.markdown("""<div class="insight-box">
-        ✅ <b>R² ≥ 0.85</b> — the model explains over 85% of variance in energy consumption.
-        Strong performance for country-level tabular data.
-        </div>""", unsafe_allow_html=True)
+    st.markdown("""<div class="insight-box">
+    ✅ <b>R² ≥ 0.85</b> — the model explains over 85% of variance in energy consumption.
+    Strong performance for country-level tabular data.
+    </div>""", unsafe_allow_html=True)
     elif model_metrics['r2'] >= 0.70:
         st.markdown("""<div class="warning-box">
-        ⚠️ <b>R² between 0.70–0.85</b> — decent. Consider adding more features.
+        <b>R² between 0.70–0.85</b> — decent. Consider adding more features.
         </div>""", unsafe_allow_html=True)
     else:
         st.markdown("""<div class="warning-box">
-        ❌ <b>R² below 0.70</b> — check clean dataset for sufficient rows and relevant columns.
+        <b>R² below 0.70</b> — check clean dataset for sufficient rows and relevant columns.
         </div>""", unsafe_allow_html=True)
 
     # Feature importance
