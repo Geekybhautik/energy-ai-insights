@@ -7,6 +7,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
+import os
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -46,8 +47,29 @@ st.markdown("""
 # ─────────────────────────────────────────────
 @st.cache_data
 def load_data():
-    df = pd.read_csv("World_Energy_Consumption.csv")
 
+    # Try multiple filename formats (important fix)
+    possible_files = [
+        "World_Energy_Consumption.csv",
+        "World Energy Consumption.csv"
+    ]
+
+    file_found = None
+    for f in possible_files:
+        if os.path.exists(f):
+            file_found = f
+            break
+
+    if file_found is None:
+        st.error("❌ Dataset file not found. Please check filename.")
+        st.stop()
+
+    df = pd.read_csv(file_found)
+
+    # ✅ FIX: Normalize column names (THIS SOLVES YOUR ERROR)
+    df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+
+    # Required columns
     desired_cols = [
         'country', 'year',
         'energy_per_capita',
@@ -64,18 +86,30 @@ def load_data():
         'electricity_demand',
         'primary_energy_consumption'
     ]
+
+    # Keep only available columns
     available = [c for c in desired_cols if c in df.columns]
     df = df[available]
+
+    # ✅ Safe check before drop
+    if 'energy_per_capita' not in df.columns:
+        st.error("❌ 'energy_per_capita' column not found in dataset.")
+        st.write("Available columns:", df.columns.tolist())
+        st.stop()
+
     df = df.dropna(subset=['country', 'year', 'energy_per_capita'])
 
+    # Remove aggregated regions
     regions_to_exclude = [
         'World', 'Europe', 'Asia', 'Africa', 'North America',
         'South America', 'Oceania', 'Middle East', 'European Union (27)',
         'High-income countries', 'Low-income countries', 'OECD',
         'Non-OECD', 'Upper-middle-income countries', 'Lower-middle-income countries'
     ]
+
     df = df[~df['country'].isin(regions_to_exclude)]
     df['year'] = df['year'].astype(int)
+
     return df
 
 # ─────────────────────────────────────────────
@@ -83,14 +117,24 @@ def load_data():
 # ─────────────────────────────────────────────
 @st.cache_data
 def load_clean_data():
-    import os
-    for fname in ["energy_ml_clean (1).csv", "energy_ml_clean.csv", "energy_ml_clean(1).csv"]:
+
+    possible_files = [
+        "energy_ml_clean.csv",
+        "energy_ml_clean (1).csv",
+        "energy_ml_clean(1).csv"
+    ]
+
+    for fname in possible_files:
         if os.path.exists(fname):
             df = pd.read_csv(fname)
+
+            # ✅ Normalize columns here too
+            df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+
             df['year'] = df['year'].astype(int)
             return df
-    # Fallback to original if clean file not found
-    st.warning("⚠️ Clean dataset not found — using original dataset for ML training.")
+
+    st.warning("⚠️ Clean dataset not found — using original dataset.")
     return load_data()
 
 # ─────────────────────────────────────────────
