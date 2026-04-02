@@ -167,44 +167,40 @@ def train_model():
     df = load_clean_data()
     df = df.copy()
 
-    # ✅ Normalize column names (IMPORTANT)
+    # ✅ Normalize column names
     df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
-
-    # 🔥 Try to auto-fix column name
-    if 'energy_per_capita' not in df.columns:
-        possible_names = ['energy_per_capita', 'energy_per_capita_kwh', 'energy_pc', 'energy']
-        for col in possible_names:
-            if col in df.columns:
-                df.rename(columns={col: 'energy_per_capita'}, inplace=True)
-                break
-
-    # ❌ Still not found → show debug
-    if 'energy_per_capita' not in df.columns:
-        st.error("❌ 'energy_per_capita' column not found in clean dataset.")
-        st.write("Available columns:", df.columns.tolist())
-        st.stop()
 
     from sklearn.preprocessing import LabelEncoder
     le = LabelEncoder()
 
+    # ✅ Check required column
     if 'country' not in df.columns:
         st.error("❌ 'country' column not found in clean dataset.")
         st.stop()
 
     df['country_encoded'] = le.fit_transform(df['country'])
 
+    # ✅ Use correct target column
+    target_col = "primary_energy_consumption"
+
+    if target_col not in df.columns:
+        st.error(f"❌ '{target_col}' column not found in clean dataset.")
+        st.write("Available columns:", df.columns.tolist())
+        st.stop()
+
+    # ✅ Feature selection
     feature_cols = ['country_encoded', 'year']
     optional_feats = [
         'gdp', 'population',
-        'fossil_share_energy', 'co2_per_capita',
-        'renewables_share_energy', 'primary_energy_consumption'
+        'energy_lag_1', 'energy_lag_2', 'energy_lag_5',
+        'energy_intensity'
     ]
 
     for col in optional_feats:
         if col in df.columns:
             feature_cols.append(col)
 
-    model_df = df[feature_cols + ['energy_per_capita']].dropna()
+    model_df = df[feature_cols + [target_col]].dropna()
 
     if len(model_df) < 50:
         st.error("❌ Not enough rows in clean dataset to train model.")
@@ -216,7 +212,7 @@ def train_model():
     import numpy as np
 
     X = model_df[feature_cols]
-    y = model_df['energy_per_capita']
+    y = model_df[target_col]
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
