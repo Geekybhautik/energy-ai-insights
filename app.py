@@ -632,7 +632,7 @@ elif page == "📈 ML Model Info":
         st.markdown(
         "<div class='warning-box'><b>R2 below 0.70</b> - check clean dataset for sufficient rows and relevant columns.</div>",
         unsafe_allow_html=True
-    )
+    """)
 
     # Feature importance
     st.subheader("🔍 Feature Importance")
