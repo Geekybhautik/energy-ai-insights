@@ -48,6 +48,8 @@ st.markdown("""
 @st.cache_data
 def load_data():
 
+    import pycountry
+
     file_name = "World_Energy_Consumption.csv"
 
     if not os.path.exists(file_name):
@@ -58,16 +60,21 @@ def load_data():
 
     df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
 
-    # ❌ REMOVE NON-COUNTRIES
-    regions_to_exclude = [
-        'World', 'Europe', 'Asia', 'Africa', 'North America',
-        'South America', 'Oceania', 'Middle East',
-        'European Union (27)', 'OECD', 'Non-OECD',
-        'High-income countries', 'Low-income countries',
-        'Upper-middle-income countries', 'Lower-middle-income countries'
-    ]
+    # ✅ Fix common name mismatches
+    country_mapping = {
+        "United States": "United States of America",
+        "Russia": "Russian Federation",
+        "South Korea": "Korea, Republic of",
+        "North Korea": "Korea, Democratic People's Republic of",
+        "Vietnam": "Viet Nam",
+    }
 
-    df = df[~df['country'].isin(regions_to_exclude)]
+    df['country'] = df['country'].replace(country_mapping)
+
+    # ✅ Keep only real countries
+    real_countries = set([c.name for c in pycountry.countries])
+
+    df = df[df['country'].isin(real_countries)]
 
     df['year'] = df['year'].astype(int)
 
