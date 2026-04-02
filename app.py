@@ -167,7 +167,26 @@ def train_model():
     df = load_clean_data()
     df = df.copy()
 
+    # ✅ Normalize column names (IMPORTANT)
+    df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+
+    # 🔥 Try to auto-fix column name
+    if 'energy_per_capita' not in df.columns:
+        possible_names = ['energy_per_capita', 'energy_per_capita_kwh', 'energy_pc', 'energy']
+        for col in possible_names:
+            if col in df.columns:
+                df.rename(columns={col: 'energy_per_capita'}, inplace=True)
+                break
+
+    # ❌ Still not found → show debug
+    if 'energy_per_capita' not in df.columns:
+        st.error("❌ 'energy_per_capita' column not found in clean dataset.")
+        st.write("Available columns:", df.columns.tolist())
+        st.stop()
+
+    from sklearn.preprocessing import LabelEncoder
     le = LabelEncoder()
+
     if 'country' not in df.columns:
         st.error("❌ 'country' column not found in clean dataset.")
         st.stop()
@@ -180,19 +199,21 @@ def train_model():
         'fossil_share_energy', 'co2_per_capita',
         'renewables_share_energy', 'primary_energy_consumption'
     ]
+
     for col in optional_feats:
         if col in df.columns:
             feature_cols.append(col)
 
-    if 'energy_per_capita' not in df.columns:
-        st.error("❌ 'energy_per_capita' column not found in clean dataset.")
-        st.stop()
-
     model_df = df[feature_cols + ['energy_per_capita']].dropna()
 
     if len(model_df) < 50:
-        st.error("❌ Not enough rows in clean dataset to train a model.")
+        st.error("❌ Not enough rows in clean dataset to train model.")
         st.stop()
+
+    from sklearn.model_selection import train_test_split
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
+    import numpy as np
 
     X = model_df[feature_cols]
     y = model_df['energy_per_capita']
@@ -205,9 +226,10 @@ def train_model():
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
+
     metrics = {
-        "mae":  round(mean_absolute_error(y_test, y_pred), 2),
-        "r2":   round(r2_score(y_test, y_pred), 4),
+        "mae": round(mean_absolute_error(y_test, y_pred), 2),
+        "r2": round(r2_score(y_test, y_pred), 4),
         "rmse": round(np.sqrt(mean_squared_error(y_test, y_pred)), 2)
     }
 
