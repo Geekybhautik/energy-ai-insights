@@ -118,24 +118,18 @@ def load_data():
 @st.cache_data
 def load_clean_data():
 
-    possible_files = [
-        "energy_ml_clean.csv",
-        "energy_ml_clean (1).csv",
-        "energy_ml_clean(1).csv"
-    ]
+    file_name = "clean_energy_data.csv"
 
-    for fname in possible_files:
-        if os.path.exists(fname):
-            df = pd.read_csv(fname)
+    if not os.path.exists(file_name):
+        st.error("❌ Clean dataset not found.")
+        st.stop()
 
-            # ✅ Normalize columns here too
-            df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+    df = pd.read_csv(file_name)
 
-            df['year'] = df['year'].astype(int)
-            return df
+    df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
+    df['year'] = df['year'].astype(int)
 
-    st.warning("⚠️ Clean dataset not found — using original dataset.")
-    return load_data()
+    return df
 
 # ─────────────────────────────────────────────
 # 5. FEATURE ENGINEERING — on EDA data
@@ -532,7 +526,6 @@ Answer questions accurately and concisely. Focus on sustainability insights.
 # ─────────────────────────────────────────────
 elif page == "🔮 Energy Predictor":
     st.title("🔮 Energy Demand Predictor")
-    st.caption("ML model trained on clean dataset → energy_ml_clean (1).csv")
 
     col1, col2 = st.columns(2)
     with col1:
